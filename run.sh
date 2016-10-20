@@ -99,7 +99,7 @@ if [ -n "\${MAX_BACKUPS}" ]; then
     echo "  Total Backup : \${BACKUP_TOTAL_DIR}"
 
     if [ \${BACKUP_TOTAL_DIR} -gt \${MAX_BACKUPS} ];then
-        BACKUP_TO_BE_DELETED=\$(ncftpls -x "-N1tr" -u \${FTP_USER} -p \${FTP_PASS} -P \${FTP_PORT} ftp://\${FTP_HOST}/\${FTP_DIRECTORY}/backup | grep backup | head -1)
+        BACKUP_TO_BE_DELETED=\$(ncftpls -x "-ltr" -u \${FTP_USER} -p \${FTP_PASS} -P \${FTP_PORT} ftp://\${FTP_HOST}/\${FTP_DIRECTORY}/backup | grep backup | head -1 | awk '{print \$9}')
         if [ -n "\${BACKUP_TO_BE_DELETED}" ] ;then
           echo "   Deleting backup \${BACKUP_TO_BE_DELETED}"
           echo "rm -rf \${FTP_DIRECTORY}/backup/\${BACKUP_TO_BE_DELETED}" | ncftp -u \${FTP_USER} -p \${FTP_PASS} -P \${FTP_PORT} \${FTP_HOST}
