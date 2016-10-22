@@ -14,6 +14,6 @@ RUN echo Europe/Paris | tee /etc/timezone && dpkg-reconfigure --frontend noninte
 
 ENV CRON_TIME="0 0 * * *"
 
-ADD run.sh /run.sh
+ADD scripts/run.sh /run.sh
 VOLUME ["/backup"]
 CMD ["/run.sh"]
