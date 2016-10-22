@@ -10,10 +10,11 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10 && \
     echo "mongodb-org-tools hold" | dpkg --set-selections && \
     mkdir /backup
 
-RUN echo Europe/Paris | tee /etc/timezone && dpkg-reconfigure --frontend noninteractive tzdata
+RUN echo Europe/Paris | tee /etc/timezone && dpkg-reconfigure --frontend noninteractive tzdata && mkdir /scripts
 
 ENV CRON_TIME="0 0 * * *"
 
-ADD scripts/run.sh /run.sh
+ADD scripts/run.sh /scripts/run.sh
+RUN chmod 755 /scripts/start.sh
 VOLUME ["/backup"]
-CMD ["/run.sh"]
+CMD ["/scripts/run.sh"]
