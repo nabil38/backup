@@ -85,7 +85,7 @@ done
 
 echo "Start images backup"
 for i in \$(ls /exports/ -N1 | grep IMG); do
-  if [ \$(ls /exports/\${i} | wc -l) -lt 1 ];then
+  if [ \$(ls /exports/\${i} | wc -l) -gt 1 ];then
     tar czvf /backup/\${BACKUP_NAME}/FILES/\${i}.tar.gz -C /exports \${i}
   fi
 done
