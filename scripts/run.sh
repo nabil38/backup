@@ -33,7 +33,6 @@ FTP_DIRECTORY=${FTP_DIRECTORY}
 [ -z "${FTP_HOST}" ] && { echo "=> FTP_HOST cannot be empty" && exit 1; }
 [ -z "${FTP_PORT}" ] && { echo "=> FTP_PORT cannot be empty" && exit 1; }
 [ -z "${FTP_USER}" ] && { echo "=> FTP_USER cannot be empty" && exit 1; }
-[ -z "${FTP_PASS}" ] && { echo "=> FTP_PASS cannot be empty" && exit 1; }
 [ -z "${FTP_DIRECTORY}" ] && { echo "=> FTP_DIRECTORY cannot be empty" && exit 1; }
 
 BACKUP_MONGO_CMD="mongodump --out /backup/\${BACKUP_NAME}/MONGO --host ${MONGODB_HOST} --port ${MONGODB_PORT} ${USER_STR}${PASS_STR}${DB_STR} ${EXTRA_OPTS}"
