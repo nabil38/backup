@@ -7,10 +7,15 @@ mkdir -p /backup/$BACKUP_NAME/MYSQL
 mkdir -p /backup/$BACKUP_NAME/FILES
 
 sleep $(( $RANDOM % 60 + 1 ))
-
-if ncftpls -u $FTP_USER -p $FTP_PASS -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY/$BACKUP_NAME; then 
+EXIST=$(ncftpls -u $FTP_USER -p $FTP_PASS -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY)
+if [ ! -n "$EXIST" ]; then
+  echo "Creating root backup directory"
+  echo "mkdir $FTP_DIRECTORY" | ncftp -u $FTP_USER -p $FTP_PASS -P $FTP_PORT $FTP_HOST; 
+fi
+EXIST=$(ncftpls -u $FTP_USER -p $FTP_PASS -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY$BACKUP_NAME)
+if [ ! -z "$EXIST" ]; then 
   ROLE=PASSIVE
-  echo "   Backup Folder exists in remote location : Passive role"
+  echo "   Backup Folder $BACKUP_NAME exists in remote location : Passive role"
 else
   if ncftpput -R -v -u $FTP_USER -p $FTP_PASS -P $FTP_PORT $FTP_HOST $FTP_DIRECTORY /backup/$BACKUP_NAME ;then
       echo "   Creating backup folder $BACKUP_NAME : master role"
@@ -34,7 +39,8 @@ if [[ "$ROLE" == "MASTER" ]]; then
 fi
 
 # On sauvegarde les image un jour sur 2
-if $(($(date +\%d) % 2)) 
+BACKIMG=$(($(date +\%d) % 2))
+if [[ "$BACKIMG" == 0 ]]; then
   echo "   Start images dump..."
   for i in $(ls /backup/${BACKUP_NAME}/MYSQL -N1); do
     cd
@@ -52,7 +58,7 @@ fi
 
 if [[ "$ROLE" == "MASTER" ]]; then
   echo "   transfert des dumps DB"
-  if ncftpput -R -v -u $FTP_USER -p $FTP_PASS -P $FTP_PORT $FTP_HOST $FTP_DIRECTORY/${BACKUP_NAME} /backup/${BACKUP_NAME}/MYSQL ;then
+  if ncftpput -R -v -u $FTP_USER -p $FTP_PASS -P $FTP_PORT $FTP_HOST $FTP_DIRECTORY${BACKUP_NAME} /backup/${BACKUP_NAME}/MYSQL ;then
       echo "   FTP upload succeeded"
   else
       echo "   FTP upload failed"
@@ -65,16 +71,16 @@ for i in $(ls /backup/${BACKUP_NAME}/FILES -N1); do
 done
 
 if [ -n "${MAX_BACKUPS}" ] && [[ "$ROLE" == "MASTER" ]]; then
-  BACKUP_TOTAL_DIR=$(ncftpls -x "-N1t" -u $FTP_USER -p $FTP_PASS -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY/ | wc -l)
+  BACKUP_TOTAL_DIR=$(ncftpls -x "-N1t" -u $FTP_USER -p $FTP_PASS -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY | wc -l)
   echo "  Total Backup : ${BACKUP_TOTAL_DIR}"
 
   if [ ${BACKUP_TOTAL_DIR} -gt ${MAX_BACKUPS} ];then
-      BACKUP_TO_BE_DELETED=$(ncftpls -x "-ltr" -u $FTP_USER -p $FTP_PASS -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY/ | grep backup | head -1 | awk '{print $9}')
+      BACKUP_TO_BE_DELETED=$(ncftpls -x "-ltr" -u $FTP_USER -p $FTP_PASS -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY | grep backup | head -1 | awk '{print $9}')
       if [ -n "${BACKUP_TO_BE_DELETED}" ] ;then
         i=0
         maxtrial=6
         while
-          DELETED=$(ncftpls -u $FTP_USER -p $FTP_PASS -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY/$BACKUP_TO_BE_DELETED)
+          DELETED=$(ncftpls -u $FTP_USER -p $FTP_PASS -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY$BACKUP_TO_BE_DELETED)
           if [ -z "$DELETED" ]; then  i=$maxtrial
           else i="$((i+1))"
           fi
@@ -82,9 +88,9 @@ if [ -n "${MAX_BACKUPS}" ] && [[ "$ROLE" == "MASTER" ]]; then
           [ "$i" -lt "$maxtrial" ]            # test the limit of the loop.
         do :
           echo "   Deleting backup ${BACKUP_TO_BE_DELETED} : $i"
-          echo "rm -rf $FTP_DIRECTORY/${BACKUP_TO_BE_DELETED}" | ncftp -u $FTP_USER -p $FTP_PASS -P $FTP_PORT $FTP_HOST;  
+          echo "rm -rf $FTP_DIRECTORY${BACKUP_TO_BE_DELETED}" | ncftp -u $FTP_USER -p $FTP_PASS -P $FTP_PORT $FTP_HOST;  
         done
-        DELETED=$(ncftpls -u $FTP_USER -p $FTP_PASS -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY/$BACKUP_TO_BE_DELETED)
+        DELETED=$(ncftpls -u $FTP_USER -p $FTP_PASS -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY$BACKUP_TO_BE_DELETED)
         if [ -z "$DELETED" ]; then
           echo "   ${BACKUP_TO_BE_DELETED} deleted"
         else
