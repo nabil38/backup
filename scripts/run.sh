@@ -135,6 +135,17 @@ chmod +x /backup.sh
 touch /backup.log
 tail -F /backup.log &
 
+echo "=> Creating logrotate for backup.log"
+cat <<EOF >> /etc/logrotate.d/backup
+/backup.log
+{ 
+daily
+maxsize 1M
+rotate 4
+}
+EOF
+chmod 644 backup ; chown root:root backup
+
 if [ -n "${INIT_BACKUP}" ]; then
     echo "=> Create a backup on the startup"
     /backup.sh

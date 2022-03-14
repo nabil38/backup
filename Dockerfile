@@ -1,7 +1,7 @@
 FROM ubuntu:latest
 
 RUN apt-get update && \
-    apt-get install -y ncftp cron && \
+    apt-get install -y ncftp cron vim && \
     DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true apt-get -y install ntp && \
     apt-get install -y --no-install-recommends mysql-client && \
     mkdir /backup
