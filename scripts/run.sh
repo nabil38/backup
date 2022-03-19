@@ -65,14 +65,14 @@ if [[ "\${BACKIMG}" == 0 ]]; then
   echo "   Start images dump..."
   for i in \$(ls /backup/\${BACKUP_NAME}/MYSQL -N1); do
     cd
-    tar czvf /backup/\${BACKUP_NAME}/MYSQL/\${i}.tar.gz -C /backup/\${BACKUP_NAME}/MYSQL \${i}
+    tar czf /backup/\${BACKUP_NAME}/MYSQL/\${i}.tar.gz -C /backup/\${BACKUP_NAME}/MYSQL \${i}
     rm -rf /backup/\${BACKUP_NAME}/MYSQL/\${i}
   done
 
   echo "Start images compression..."
   for i in \$(ls /exports/ -N1 | grep IMG); do
     if [ \$(ls /exports/\${i} | wc -l) -gt 1 ];then
-      tar czvf /backup/\${BACKUP_NAME}/FILES/\${i}.tar.gz -C /exports \${i}
+      tar czf /backup/\${BACKUP_NAME}/FILES/\${i}.tar.gz -C /exports \${i}
     fi
   done
 fi
