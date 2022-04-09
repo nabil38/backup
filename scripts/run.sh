@@ -22,7 +22,7 @@ cat <<EOF >> /backup.sh
 #!/bin/bash
 
 echo "=> Backup started"
-BACKUP_NAME=backup_\$(date +\%Y.\%m.\%d.\%H)
+BACKUP_NAME=backup_\$(date +\%Y.\%m.\%d.00)
 
 mkdir -p /backup/\${BACKUP_NAME}/MYSQL
 mkdir -p /backup/\${BACKUP_NAME}/FILES
