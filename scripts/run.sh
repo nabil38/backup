@@ -27,7 +27,6 @@ BACKUP_NAME=backup_\$(date +\%Y.\%m.\%d.\%H)
 mkdir -p /backup/\${BACKUP_NAME}/MYSQL
 mkdir -p /backup/\${BACKUP_NAME}/FILES
 
-sleep \$(( \$RANDOM % 60 + 1 ))
 EXIST=\$(ncftpls -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY)
 if [ -z "\${EXIST}" ]; then
   echo "Creating root backup directory"
@@ -50,7 +49,7 @@ fi
 if [[ "\${ROLE}" == "MASTER" ]]; then
   echo "   Start DB dump..."
   for i in \$( echo "show databases;" | mysql -h$MYSQL_HOST -P$MYSQL_PORT -u$MYSQL_USER -p"$MYSQL_PASS" | grep -v 'Database\|information_schema\|mysql\|performance_schema'); do
-    if mysqldump -h$MYSQL_HOST -P$MYSQL_PORT -u$MYSQL_USER -p"$MYSQL_PASS"  \${i} > /backup/\${BACKUP_NAME}/MYSQL/\${i}.sql ;then
+    if mysqldump --column-statistics=0 -h$MYSQL_HOST -P$MYSQL_PORT -u$MYSQL_USER -p"$MYSQL_PASS"  \${i} > /backup/\${BACKUP_NAME}/MYSQL/\${i}.sql ;then
         echo "   Dump Mysql \$i succeeded"
     else
         echo "   Dump Mysql \$i failed"
@@ -59,8 +58,8 @@ if [[ "\${ROLE}" == "MASTER" ]]; then
   done
 fi
 
-# On sauvegarde les image un jour sur 2
-BACKIMG=\$((\$(date +\%d) % 2))
+# On sauvegarde les image tous les jours
+BACKIMG=\$((10#\$(date +\%d) % 1))
 if [[ "\${BACKIMG}" == 0 ]]; then
   echo "   Start images dump..."
   for i in \$(ls /backup/\${BACKUP_NAME}/MYSQL -N1); do
@@ -151,7 +150,7 @@ if [ -n "${INIT_BACKUP}" ]; then
     /backup.sh
 fi
 
-echo "${CRON_TIME} /backup.sh >> /backup.log 2>&1" > /crontab.conf
+echo "0 $(( $RANDOM % 4 )) * * * /backup.sh >> /backup.log 2>&1" > /crontab.conf
 crontab  /crontab.conf
 echo "=> Running cron job"
 exec cron -f
