@@ -27,12 +27,12 @@ BACKUP_NAME=backup_\$(date +\%Y.\%m.\%d.00)
 mkdir -p /backup/\${BACKUP_NAME}/MYSQL
 mkdir -p /backup/\${BACKUP_NAME}/FILES
 
-EXIST=\$(ncftpls -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY)
+EXIST=\$(ncftpls -l -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY)
 if [ -z "\${EXIST}" ]; then
   echo "Creating root backup directory"
   echo "mkdir $FTP_DIRECTORY" | ncftp -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT $FTP_HOST; 
 fi
-EXIST=\$(ncftpls -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY\${BACKUP_NAME})
+EXIST=\$(ncftpls -l -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY\${BACKUP_NAME})
 if [ -n "\${EXIST}" ]; then 
   ROLE=PASSIVE
   echo "   Backup Folder \${BACKUP_NAME} exists in remote location : Passive role"
@@ -91,16 +91,16 @@ for i in \$(ls /backup/\${BACKUP_NAME}/FILES -N1); do
 done
 
 if [ -n "${MAX_BACKUPS}" ] && [[ "\${ROLE}" == "MASTER" ]]; then
-  BACKUP_TOTAL_DIR=\$(ncftpls -x "-N1t" -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY | wc -l)
+  BACKUP_TOTAL_DIR=\$(ncftpls -l -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY | wc -l)
   echo "  Total Backup : \${BACKUP_TOTAL_DIR}"
 
   if [ \${BACKUP_TOTAL_DIR} -gt ${MAX_BACKUPS} ];then
-      BACKUP_TO_BE_DELETED=\$(ncftpls -x "-ltr" -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY | grep backup | head -1 | awk '{print \$9}')
+      BACKUP_TO_BE_DELETED=\$(ncftpls -l -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY | grep backup | sed -E 's/ Jan / 01 /; s/ Feb / 02 /; s/ Mar / 03 /; s/ Apr / 04 /; s/ May / 05 /; s/ Jun / 06 /; s/ Jul / 07 /; s/ Aug / 08 /; s/ Sep / 09 /; s/ Oct / 10 /; s/ Nov / 11 /; s/ Dec / 12 /' | sort -k 6,7 | head -n 1 | awk '{print \$NF}')
       if [ -n "\${BACKUP_TO_BE_DELETED}" ] ;then
         i=0
         maxtrial=6
         while
-          DELETED=\$(ncftpls -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY\${BACKUP_TO_BE_DELETED})
+          DELETED=\$(ncftpls -l -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY\${BACKUP_TO_BE_DELETED} | awk '{print $NF}')
           if [ -z "\${DELETED}" ]; then  i=\$maxtrial
           else i="\$((i+1))"
           fi
@@ -110,7 +110,7 @@ if [ -n "${MAX_BACKUPS}" ] && [[ "\${ROLE}" == "MASTER" ]]; then
           echo "   Deleting backup \${BACKUP_TO_BE_DELETED} : \$i"
           echo "rm -rf $FTP_DIRECTORY\${BACKUP_TO_BE_DELETED}" | ncftp -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT $FTP_HOST;  
         done
-        DELETED=\$(ncftpls -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY\${BACKUP_TO_BE_DELETED})
+        DELETED=\$(ncftpls -l -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY\${BACKUP_TO_BE_DELETED} | awk '{print $NF}')
         if [ -z "\${DELETED}" ]; then
           echo "   \${BACKUP_TO_BE_DELETED} deleted"
         else
