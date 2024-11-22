@@ -100,7 +100,7 @@ if [ -n "${MAX_BACKUPS}" ] && [[ "\${ROLE}" == "MASTER" ]]; then
         i=0
         maxtrial=6
         while
-          DELETED=\$(ncftpls -l -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY\${BACKUP_TO_BE_DELETED} | awk '{print $NF}')
+          DELETED=\$(ncftpls -l -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY\${BACKUP_TO_BE_DELETED} | awk '{print \$NF}')
           if [ -z "\${DELETED}" ]; then  i=\$maxtrial
           else i="\$((i+1))"
           fi
@@ -108,9 +108,9 @@ if [ -n "${MAX_BACKUPS}" ] && [[ "\${ROLE}" == "MASTER" ]]; then
           [ "\$i" -lt "\$maxtrial" ]            # test the limit of the loop.
         do :
           echo "   Deleting backup \${BACKUP_TO_BE_DELETED} : \$i"
-          echo "rm -rf $FTP_DIRECTORY\${BACKUP_TO_BE_DELETED}" | ncftp -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT $FTP_HOST;  
+          lftp -u $FTP_USER,"$FTP_PASS" -p $FTP_PORT $FTP_HOST -e "rm -r $FTP_DIRECTORY\${BACKUP_TO_BE_DELETED}"
         done
-        DELETED=\$(ncftpls -l -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY\${BACKUP_TO_BE_DELETED} | awk '{print $NF}')
+        DELETED=\$(ncftpls -l -u $FTP_USER -p "$FTP_PASS" -P $FTP_PORT ftp://$FTP_HOST$FTP_DIRECTORY\${BACKUP_TO_BE_DELETED} | awk '{print \$NF}')
         if [ -z "\${DELETED}" ]; then
           echo "   \${BACKUP_TO_BE_DELETED} deleted"
         else
